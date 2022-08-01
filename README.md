@@ -1,14 +1,21 @@
+Exercise 1
 
-Exercise 1:
-
-
-
-
+Program will check whether number is Perfect, Defective or Abundent number from the list of number provided by user in run time.
 
 
 Exercise 2:
 
+1. JavaScript will asynchronously gather information from all sources and build a three-dimensional array to produce a line and bar graph.
 
+2. For uniformity, prepared data from all three data sources will be inserted into a three-dimensional array first.
+
+3. Prior to creating a line graph The date column will be used to sort arrays in ascending order.
+
+4. Because the source data may change at any time, data points for charts will be dynamically genreated.
+
+5. The line graph will generate till the final entry data point in the source data using the "Minimum date from the data source.
+
+6. Important JavaScript functions (reduce, group by) are used to determine the percentage by value for each category in order to create a bar graph.
 
 
 
