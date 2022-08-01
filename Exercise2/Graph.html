@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="styles.css">
+        <title>Ajax 2 - Local JSON</title>
+       
+    </head>
+
+    <body>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+        <div class="container">
+        <div class="top" id="chartContainer" style="height: 50%; width: 100%;"></div>
+
+        <button type="submit" id="firstGraph " onclick="LoadGraph('firstGraph')">Load first chart</button>
+        <button type="submit" id="secondGraph" onclick="LoadGraph('secondGraph')">Load second chart</button>
+        <button type="submit" id="thirdGraph" onclick="LoadGraph('thirdGraph')">load third chart</button>
+        <button type="submit" id="fullLineGraph" onclick="LoadGraph('fullLineGraph')">load Full chart</button>
+        <div class="bottom" id="chartContainer1" style="height: 50%; width: 100%;"></div>
+        </div>
+    </body>
+    <br><br>
+    <script>
+let piechart = [
+    []
+]
+let jsonArray1 = [
+    [
+        []
+    ]
+]
+let jsonArray2 = [
+    [
+        []
+    ]
+]
+let jsonArray3 = [
+    [
+        []
+    ]
+]
+let jsonArray4 = [
+    [
+        []
+    ]
+]
+let finalJsonArray = [
+    [
+        []
+    ]
+]
+let lineDataPoints1 = [
+    []
+]
+let lineDataPoints2 = [
+    []
+]
+let lineDataPoints3 = [
+    []
+]
+let lineDataPoints4 = [
+    []
+]
+barDataPoints = [
+        []
+    ]
+    
+
+window.onload = async function() {
+
+try {
+    await loadData1();
+    /* sorting data in three dimensioanl array based on second column "date" to prepare data for Line and Bar graph */
+    jsonArray1 = jsonArray1.sort((a, b) => a[1].localeCompare(b[1]))
+    await loadData2();
+    jsonArray2 = jsonArray2.sort((a, b) => a[1].localeCompare(b[1]))
+    await loadData3();
+    jsonArray3 = jsonArray3.sort((a, b) => a[1].localeCompare(b[1]))
+} catch(e) {
+    console.log(document.getElementById("chartContainer").innerHTML ="server is not available");
+}
+  
+    /*This temporary aray is being used to concatenate all data points to calculate percentage value by Category to genereate bar graph */
+    var tempBarChartArray = jsonArray1.concat(jsonArray2).concat(jsonArray3)
+
+    /*Below two steps are for sorting all data points based on "date" column and assigning that to global Array for prepration 
+    of Full line graph from all three data sources. When user will click Full graph button, system will show full line graph based on ascending 
+    date order to the user */
+    tempBarChartArray = tempBarChartArray.sort((a, b) => a[1].localeCompare(b[1]))
+    jsonArray4 = tempBarChartArray
+
+
+    /*Grouping the column Category and adding up all of their corresponding values to get a two-dimensional array as the "reducedArray" */
+    var temp = tempBarChartArray.reduce(function(obj, cur) {
+        var total = obj[cur[0]] || 0;
+        obj[cur[0]] = total + cur[2];
+        return obj;
+    }, {});
+
+    var reducedArray = Object.keys(temp).map(function(key) {
+        return [key, temp[key]];
+    });
+
+
+    /* Summing all value points to calcaute percentage by Category */
+    var sum = 0
+    for (var i = 0; i < reducedArray.length; i++) {
+        sum = sum + reducedArray[i][1]
+    }
+
+   
+    /* Generating data points for Full Bar Graph */
+
+    for (var i = 0; i < reducedArray.length; i++) {
+        barDataPoints.push({
+            y: reducedArray[i][1] * 100 / sum,
+            label: reducedArray[i][0]
+        })
+    }
+    barDataPoints = barDataPoints.slice(1)
+
+    var BarChart = new CanvasJS.Chart("chartContainer", {
+        title: {
+            text: "Test"
+        },
+        data: [{
+            type: "pie",
+            startAngle: 240,
+            yValueFormatString: "##0.00\"%\"",
+            indexLabel: "{label} {y}",
+            dataPoints: barDataPoints
+        }]
+    });
+    BarChart.render()
+
+}
+
+/* This function will take appropriate value based on button he clicked to view Line graph and filter data accordingly to 
+render Line graph to user */
+async function LoadGraph(value) {
+
+    if (value == "firstGraph") {
+        finalJsonArray = [
+            [
+                []
+            ]
+        ]
+        finalJsonArray = jsonArray1
+    } else if (value == "secondGraph") {
+        finalJsonArray = [
+            [
+                []
+            ]
+        ]
+        finalJsonArray = jsonArray2
+    } else if (value == "thirdGraph") {
+        finalJsonArray = [
+            [
+                []
+            ]
+        ]
+    
+        finalJsonArray = jsonArray3
+    } else if (value == "fullLineGraph") {
+        finalJsonArray = [
+            [
+                []
+            ]
+        ]
+        finalJsonArray = jsonArray4
+    }
+
+
+/* defining properties of Line graph */
+var LineChart = new CanvasJS.Chart("chartContainer1", {
+        toolTip: {
+            shared: true
+        },
+        axisX: {
+            title: "Axis X with minimum 250",
+            interval: 1,
+            intervalType: "day",
+            minimum: new Date(finalJsonArray[0][1]),
+        },
+        data: [{
+                type: "line",
+                color: "#0000FF",
+                name: "CAT 1",
+                showInLegend: true,
+                dataPoints: lineDataPoints1
+            },
+            {
+                type: "line",
+                color: "#000000",
+                name: "CAT 2",
+                showInLegend: true,
+                dataPoints: lineDataPoints2
+            },
+            {
+                type: "line",
+                color: "#00FF00",
+                name: "CAT 3",
+                showInLegend: true,
+                dataPoints: lineDataPoints3
+            },
+            {
+                type: "line",
+                color: "#FFA500",
+                name: "CAT 4",
+                showInLegend: true,
+                dataPoints: lineDataPoints4
+            }
+        ]
+    });
+    chartRendering(finalJsonArray)
+    LineChart.render();
+}
+
+async function populateDataPoints(finalJsonArray) {
+    return new Promise(function(resolve, reject) {
+        lineDataPoints1 = [
+            []
+        ];
+        lineDataPoints2 = [
+            []
+        ];
+        lineDataPoints3 = [
+            []
+        ];
+        lineDataPoints4 = [
+            []
+        ];
+
+        for (var i = 0; i < finalJsonArray.length; i++) {
+
+            if (finalJsonArray[i][0] == 'CAT 1') {
+
+                lineDataPoints1.push({
+                    x: new Date(finalJsonArray[i][1]),
+                    y: finalJsonArray[i][2]
+
+                });
+
+            } else if (finalJsonArray[i][0] == 'CAT 2') {
+                lineDataPoints2.push({
+                    x: new Date(finalJsonArray[i][1]),
+                    y: finalJsonArray[i][2]
+
+                });
+            } else if (finalJsonArray[i][0] == 'CAT 3') {
+                lineDataPoints3.push({
+                    x: new Date(finalJsonArray[i][1]),
+                    y: finalJsonArray[i][2]
+                });
+            } else if (finalJsonArray[i][0] == 'CAT 4') {
+                lineDataPoints4.push({
+                    x: new Date(finalJsonArray[i][1]),
+                    y: finalJsonArray[i][2]
+
+                });
+            }
+
+        }
+
+        resolve(lineDataPoints1, lineDataPoints2, lineDataPoints3, lineDataPoints4)
+    });
+}
+
+/* preparing data points for Line Graph */
+async function chartRendering(finalJsonArray) {
+    await populateDataPoints(finalJsonArray)
+    lineDataPoints1 = lineDataPoints1.slice(1)
+    lineDataPoints2 = lineDataPoints2.slice(1)
+    lineDataPoints3 = lineDataPoints3.slice(1)
+    lineDataPoints4 = lineDataPoints4.slice(1)
+
+}
+
+/*
+- Load data from first url into three dimensional array
+- Before inserting data formatting content for uniformatiy
+- loading data into three dimensional array upon successful connectity to S3 source server, else will 
+handle error received from server and will show it to client in webpage
+ */
+async function loadData1() {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://s3.amazonaws.com/logtrust-static/test/test/data1.json", true)
+
+        xhr.onload = function() {
+            if (this.status == 200) {
+                var rawJsonData = JSON.parse(this.responseText);
+                var output = '';
+                var firstRecord = false;
+                for (var i in rawJsonData) {
+                    tempCat = JSON.stringify(rawJsonData[i].cat).toUpperCase()
+                    tempCat = tempCat.split('"')[1]
+                    tempDate = dateConverter(rawJsonData[i].d)
+                    for (var j = 0; j < jsonArray1.length; j++) {
+                        if (jsonArray1[j][0] == tempCat && jsonArray1[j][1] == tempDate) {
+                            jsonArray1[j][2] = jsonArray1[j][2] + rawJsonData[i].value
+                        }
+                    }
+                    jsonArray1.push([tempCat, dateConverter(rawJsonData[i].d), rawJsonData[i].value])
+                }
+                jsonArray1 = jsonArray1.slice(1)
+                resolve(xhr.response)
+            } else {
+                reject(xhr.statusText)
+            }
+
+        }
+        xhr.send();
+    });
+}
+
+function dateConverter(DateInMilliseconds) {
+    const date = new Date(DateInMilliseconds)
+    return date.toLocaleDateString('sv')
+}
+
+
+/*
+- Load data from second url into three dimensional array
+- Before inserting data formatting content for uniformatiy
+- loading data into three dimensional array upon successful connectity to S3 source server, else will 
+handle error received from server and will show it to client in webpage
+ */
+async function loadData2() {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://s3.amazonaws.com/logtrust-static/test/test/data2.json", true)
+        xhr.onload = function() {
+            if (this.status == 200) {
+                var rawJsonData = JSON.parse(this.responseText);
+                var output = '';
+                for (var i in rawJsonData) {
+                    tempCat = JSON.stringify(rawJsonData[i].categ)
+                    tempCat = tempCat.split('"')[1]
+                    tempDate = rawJsonData[i].myDate
+                    for (var j = 0; j < jsonArray2.length; j++) {
+                        if (jsonArray2[j][0] == tempCat && jsonArray2[j][1] == tempDate) {
+                            jsonArray2[j][2] = jsonArray2[j][2] + rawJsonData[i].val
+                        }
+                    }
+                    jsonArray2.push([tempCat, rawJsonData[i].myDate, rawJsonData[i].val])
+
+                }
+                jsonArray2 = jsonArray2.slice(1)
+                resolve(xhr.response)
+            } else {
+                reject(xhr.statusText)
+            }
+        }
+        xhr.send();
+    });
+
+}
+
+/*
+- Load data from second url into three dimensional array
+- Before inserting data formatting content for uniformatiy
+- loading data into three dimensional array upon successful connectity to S3 source server, else will 
+handle error received from server and will show it to client in webpage
+ */
+async function loadData3() {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://s3.amazonaws.com/logtrust-static/test/test/data3.json", true)
+        xhr.onload = function() {
+            if (this.status == 200) {
+                var rawJsonData = JSON.parse(this.responseText);
+                var output = '';
+                for (var i in rawJsonData) {
+                    var tempCat = categoryParaser(JSON.stringify(rawJsonData[i].raw))
+                    var tempDate = dateParaser(JSON.stringify(rawJsonData[i].raw))
+                    for (var j = 0; j < jsonArray3.length; j++) {
+                        if (jsonArray3[j][0] == tempCat && jsonArray3[j][1] == tempDate) {
+                            jsonArray3[j][2] = jsonArray3[j][2] + rawJsonData[i].val
+                        }
+                    }
+                    jsonArray3.push([tempCat, dateParaser(JSON.stringify(rawJsonData[i].raw)), rawJsonData[i].val])
+                }
+                jsonArray3 = jsonArray3.slice(1)
+                resolve(xhr.response)
+            } else {
+                reject(xhr.tatusText)
+            }
+        }
+        xhr.send();
+    });
+
+}
+
+function dateParaser(raw_text) {
+    let found = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/.exec(raw_text)
+    return found[0]
+}
+
+function categoryParaser(raw_text) {
+    var res = raw_text.split("#")
+    text = ""
+    for (x in res) {
+        if (res[x].indexOf('CAT') > -1) {
+            text += res[x]
+        }
+    }
+    return text;
+}
+
+      </script>
+
+</html>

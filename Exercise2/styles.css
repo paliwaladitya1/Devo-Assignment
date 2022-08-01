@@ -1,0 +1,20 @@
+.container{
+    height: 100vh;
+}
+
+.top {
+    height:50vh;
+  background-color: #abc;
+  }
+  
+.bottom{
+    height: 50vh;
+    background-color: #768;
+
+}
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
